@@ -6,37 +6,50 @@ import android.os.Handler
 import android.os.Message
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import java.util.*
+import kotlin.properties.Delegates
 
 /**
  * Created by Ayush on 10/20/2017.
  */
 class Ticker : View {
 
-    var mHandler : Handler? = null
-    var textPaint : Paint? = null
-    var circlePath: Path? = null
-    var start1 = 200f
-    var start2 = 200f
-    val current = 1
-    val next = 2
-    var delta1 = -180f
-    val delta2=0f
+    var mHandler: Handler? = null
+    var animationTimer: Timer? = null
 
-    constructor(context : Context) : this(context, null){
+    var textPaint: Paint? = null
+    var circlePath: Path? = null
+
+    var start1: Float by Delegates.observable(200f) { _, _, _ -> mHandler?.obtainMessage(1)?.sendToTarget() }
+    var start2: Float by Delegates.observable(200f) {
+        _, _, newValue ->
+        kotlin.run {
+            if (newValue == 0f) animationTimer?.cancel()
+            mHandler?.obtainMessage(1)?.sendToTarget()
+        }
+
+    }
+
+    var current = 1
+    var next = 2
+    var delta1 = -180f
+    var textSize = 180f
+
+    constructor(context: Context) : this(context, null) {
         initialize(null, 0)
     }
 
-    constructor(context: Context, attributeSet: AttributeSet?) : this(context, attributeSet, 0){
+    constructor(context: Context, attributeSet: AttributeSet?) : this(context, attributeSet, 0) {
         initialize(attributeSet, 0)
     }
 
-    constructor(context: Context, attributeSet: AttributeSet?, defStyleAttr: Int) : super(context, attributeSet, defStyleAttr){
+    constructor(context: Context, attributeSet: AttributeSet?, defStyleAttr: Int) : super(context, attributeSet, defStyleAttr) {
         initialize(attributeSet, defStyleAttr)
     }
 
-    private fun initialize(attributeSet: AttributeSet?, defStyleAttr: Int){
+    private fun initialize(attributeSet: AttributeSet?, defStyleAttr: Int) {
 
         initAttributes(attributeSet, defStyleAttr)
         initPaint()
@@ -45,44 +58,36 @@ class Ticker : View {
         mHandler = object : Handler() {
 
             override fun handleMessage(msg: Message) {
-                    invalidate()
+                invalidate()
             }
         }
 
-        val t = Timer()
-        t.schedule(object : TimerTask() {
+        animationTimer = Timer()
 
-            override fun run() {
-                if (start1 == delta1) {
-                    start1 = delta1
-                    if (start2!=delta2)
-                    {
-                        start2 -= 1f
-                        mHandler?.obtainMessage(2)?.sendToTarget()
-                    }
-                }
-                else{
-                    start1 -= 1f
-                    mHandler?.obtainMessage(1)?.sendToTarget()
-                }
+    }
 
-
+    private fun tickView() {
+        if (start1 == delta1) {
+            start1 = delta1
+            if (start2 != delta1) start2 -= 10f
+            else {
+                start2 = 200f
+                next += 1
             }
-        }, 1000, 10)
-
+        } else start1 -= 10f
     }
 
     private fun initPath() {
 
         circlePath = Path()
-        circlePath?.addArc(RectF(-300f,-300f,300f,300f),0f, 360f)
+        circlePath?.addArc(RectF(-300f, -300f, 300f, 300f), 0f, 360f)
 
     }
 
     private fun initPaint() {
 
         textPaint = Paint()
-        textPaint?.textSize=180f
+        textPaint?.textSize = textSize
         textPaint?.color = Color.RED
 
     }
@@ -94,9 +99,28 @@ class Ticker : View {
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        canvas?.translate(width/2f, height/2f)
-        canvas?.clipRect(-250f,-150f,250f,50f)
-        canvas?.drawText(current.toString().toCharArray(), 0 ,1, -40f, start1, textPaint)
-        if (start1 == delta1) canvas?.drawText(next.toString().toCharArray(), 0 ,1, -40f, start2, textPaint)
+        canvas?.translate(width / 2f, height / 2f)
+        canvas?.clipRect(-250f, -150f, 350f, 50f)
+        if (start1 == delta1) canvas?.drawText(next.toString().toCharArray(), 0, next.toString().length, -40f, start2, textPaint)
+        else canvas?.drawText(current.toString().toCharArray(), 0, current.toString().length, -40f, start1, textPaint)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+
+        when (event.action) {
+
+            MotionEvent.ACTION_DOWN -> {
+                animationTimer = Timer()
+                animationTimer?.schedule(object : TimerTask() {
+
+                    override fun run() {
+                        tickView()
+
+                    }
+                }, 1000, 10)
+            }
+
+        }
+        return true
     }
 }
