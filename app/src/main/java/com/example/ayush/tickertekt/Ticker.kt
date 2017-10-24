@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -16,8 +17,8 @@ import kotlin.properties.Delegates
  */
 class Ticker : View {
 
-    var mHandler: Handler? = null
     var animationTimer: Timer? = null
+    var mHandler : AnimationHandler? = null
 
     var textPaint: Paint? = null
     var circlePath: Path? = null
@@ -37,17 +38,9 @@ class Ticker : View {
     var delta1 = -180f
     var textSize = 180f
 
-    constructor(context: Context) : this(context, null) {
-        initialize(null, 0)
-    }
-
-    constructor(context: Context, attributeSet: AttributeSet?) : this(context, attributeSet, 0) {
-        initialize(attributeSet, 0)
-    }
-
-    constructor(context: Context, attributeSet: AttributeSet?, defStyleAttr: Int) : super(context, attributeSet, defStyleAttr) {
-        initialize(attributeSet, defStyleAttr)
-    }
+    constructor(context: Context) : this(context, null) { initialize(null, 0) }
+    constructor(context: Context, attributeSet: AttributeSet?) : this(context, attributeSet, 0) { initialize(attributeSet, 0) }
+    constructor(context: Context, attributeSet: AttributeSet?, defStyleAttr: Int) : super(context, attributeSet, defStyleAttr) { initialize(attributeSet, defStyleAttr) }
 
     private fun initialize(attributeSet: AttributeSet?, defStyleAttr: Int) {
 
@@ -55,12 +48,7 @@ class Ticker : View {
         initPaint()
         initPath()
 
-        mHandler = object : Handler() {
-
-            override fun handleMessage(msg: Message) {
-                invalidate()
-            }
-        }
+        mHandler = AnimationHandler(this)
 
         animationTimer = Timer()
 
@@ -117,10 +105,27 @@ class Ticker : View {
                         tickView()
 
                     }
-                }, 1000, 10)
+                },0, 10)
             }
 
         }
         return true
+    }
+
+    companion object {
+
+        class AnimationHandler(instance : Ticker) : Handler() {
+
+            val weakReference = WeakReference<Ticker>(instance)
+
+            override fun handleMessage(msg: Message?) {
+
+                val ticker = weakReference.get()
+                ticker?.invalidate()
+            }
+
+
+        }
+
     }
 }
