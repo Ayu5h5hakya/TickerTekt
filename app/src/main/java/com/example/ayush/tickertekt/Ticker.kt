@@ -17,7 +17,12 @@ class Ticker : View {
     var mHandler : Handler? = null
     var textPaint : Paint? = null
     var circlePath: Path? = null
-    var startX = 0f
+    var start1 = 200f
+    var start2 = 200f
+    val current = 1
+    val next = 2
+    var delta1 = -180f
+    val delta2=0f
 
     constructor(context : Context) : this(context, null){
         initialize(null, 0)
@@ -40,7 +45,7 @@ class Ticker : View {
         mHandler = object : Handler() {
 
             override fun handleMessage(msg: Message) {
-                invalidate()
+                    invalidate()
             }
         }
 
@@ -48,11 +53,22 @@ class Ticker : View {
         t.schedule(object : TimerTask() {
 
             override fun run() {
-                startX -= 1f
-                mHandler?.obtainMessage(1)?.sendToTarget()
+                if (start1 == delta1) {
+                    start1 = delta1
+                    if (start2!=delta2)
+                    {
+                        start2 -= 1f
+                        mHandler?.obtainMessage(2)?.sendToTarget()
+                    }
+                }
+                else{
+                    start1 -= 1f
+                    mHandler?.obtainMessage(1)?.sendToTarget()
+                }
+
 
             }
-        }, 1000, 50)
+        }, 1000, 10)
 
     }
 
@@ -66,7 +82,7 @@ class Ticker : View {
     private fun initPaint() {
 
         textPaint = Paint()
-        textPaint?.textSize=36f
+        textPaint?.textSize=180f
         textPaint?.color = Color.RED
 
     }
@@ -79,8 +95,8 @@ class Ticker : View {
         super.onDraw(canvas)
 
         canvas?.translate(width/2f, height/2f)
-        canvas?.clipRect(-50,-50,50,50)
-        canvas?.drawText("Ayush", 0 , 5, startX, 0f, textPaint)
-
+        canvas?.clipRect(-250f,-150f,250f,50f)
+        canvas?.drawText(current.toString().toCharArray(), 0 ,1, -40f, start1, textPaint)
+        if (start1 == delta1) canvas?.drawText(next.toString().toCharArray(), 0 ,1, -40f, start2, textPaint)
     }
 }
