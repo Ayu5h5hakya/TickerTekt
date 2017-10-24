@@ -5,7 +5,6 @@ import android.graphics.*
 import android.os.Handler
 import android.os.Message
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import java.lang.ref.WeakReference
@@ -16,6 +15,9 @@ import kotlin.properties.Delegates
  * Created by Ayush on 10/20/2017.
  */
 class Ticker : View {
+
+    val DEFAULT_TEXT_SIZE = 180f
+    val DEFAULT_TEXT_COLOR = Color.argb(255,0,0,0)
 
     var animationTimer: Timer? = null
     var mHandler : AnimationHandler? = null
@@ -36,7 +38,8 @@ class Ticker : View {
     var current = 1
     var next = 2
     var delta1 = -180f
-    var textSize = 180f
+    var textSize = DEFAULT_TEXT_SIZE
+    var textColor = DEFAULT_TEXT_COLOR
 
     constructor(context: Context) : this(context, null) { initialize(null, 0) }
     constructor(context: Context, attributeSet: AttributeSet?) : this(context, attributeSet, 0) { initialize(attributeSet, 0) }
@@ -44,7 +47,7 @@ class Ticker : View {
 
     private fun initialize(attributeSet: AttributeSet?, defStyleAttr: Int) {
 
-        initAttributes(attributeSet, defStyleAttr)
+        if (attributeSet!=null) initAttributes(attributeSet, defStyleAttr)
         initPaint()
         initPath()
 
@@ -76,12 +79,14 @@ class Ticker : View {
 
         textPaint = Paint()
         textPaint?.textSize = textSize
-        textPaint?.color = Color.RED
+        textPaint?.color = textColor
 
     }
 
-    private fun initAttributes(attributeSet: AttributeSet?, defStyleAttr: Int) {
+    private fun initAttributes(attributeSet: AttributeSet, defStyleAttr: Int) {
 
+        textSize = attributeSet.getAttributeFloatValue(R.styleable.Ticker_textSize,DEFAULT_TEXT_SIZE)
+//        textColor = attributeSet.getAttribute
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -103,7 +108,6 @@ class Ticker : View {
 
                     override fun run() {
                         tickView()
-
                     }
                 },0, 10)
             }

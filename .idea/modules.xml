@@ -4,8 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/TickerTekt.iml" filepath="$PROJECT_DIR$/TickerTekt.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/tickertekt.iml" filepath="$PROJECT_DIR$/tickertekt.iml" />
     </modules>
   </component>
 </project>
