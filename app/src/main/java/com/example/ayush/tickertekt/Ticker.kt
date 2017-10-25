@@ -1,79 +1,73 @@
 package com.example.ayush.tickertekt
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.*
-import android.os.Handler
-import android.os.Message
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Interpolator
+import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import java.lang.ref.WeakReference
-import java.util.*
-import kotlin.properties.Delegates
+import android.view.animation.LinearInterpolator
+
 
 /**
  * Created by Ayush on 10/20/2017.
  */
-class Ticker : View {
+class Ticker : View, ValueAnimator.AnimatorUpdateListener {
 
-    val DEFAULT_TEXT_SIZE = 180f
-    val DEFAULT_TEXT_COLOR = Color.argb(255,0,0,0)
+    private val DEFAULT_TEXT_SIZE = 180f
+    private val DEFAULT_TEXT_COLOR = Color.argb(255, 0, 0, 0)
+    private val DEFAULT_ANIMATION_DURATION = 1000
 
-    var animationTimer: Timer? = null
-    var mHandler : AnimationHandler? = null
+    val positionAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 200f)
 
     var textPaint: Paint? = null
-    var circlePath: Path? = null
 
-    var start1: Float by Delegates.observable(200f) { _, _, _ -> mHandler?.obtainMessage(1)?.sendToTarget() }
-    var start2: Float by Delegates.observable(200f) {
-        _, _, newValue ->
-        kotlin.run {
-            if (newValue == 0f) animationTimer?.cancel()
-            mHandler?.obtainMessage(1)?.sendToTarget()
-        }
+    private var direction: Boolean = false
+    private var start1: Float = 200f
+    private var numberArray = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-    }
-
-    var current = 1
-    var next = 2
-    var delta1 = -180f
     var textSize = DEFAULT_TEXT_SIZE
     var textColor = DEFAULT_TEXT_COLOR
+    var duration = DEFAULT_ANIMATION_DURATION
+    var animationRunning = true
 
-    constructor(context: Context) : this(context, null) { initialize(null, 0) }
-    constructor(context: Context, attributeSet: AttributeSet?) : this(context, attributeSet, 0) { initialize(attributeSet, 0) }
-    constructor(context: Context, attributeSet: AttributeSet?, defStyleAttr: Int) : super(context, attributeSet, defStyleAttr) { initialize(attributeSet, defStyleAttr) }
+    constructor(context: Context) : this(context, null) {
+        initialize(null, 0)
+    }
+
+    constructor(context: Context, attributeSet: AttributeSet?) : this(context, attributeSet, 0) {
+        initialize(attributeSet, 0)
+    }
+
+    constructor(context: Context, attributeSet: AttributeSet?, defStyleAttr: Int) : super(context, attributeSet, defStyleAttr) {
+        initialize(attributeSet, defStyleAttr)
+    }
 
     private fun initialize(attributeSet: AttributeSet?, defStyleAttr: Int) {
 
-        if (attributeSet!=null) initAttributes(attributeSet, defStyleAttr)
+        if (attributeSet != null) initAttributes(attributeSet, defStyleAttr)
         initPaint()
         initPath()
 
-        mHandler = AnimationHandler(this)
+        positionAnimator.duration = duration.toLong()
+        positionAnimator.addUpdateListener(this)
+        positionAnimator.addListener(object : AnimatorListenerAdapter() {
 
-        animationTimer = Timer()
-
-    }
-
-    private fun tickView() {
-        if (start1 == delta1) {
-            start1 = delta1
-            if (start2 != delta1) start2 -= 10f
-            else {
-                start2 = 200f
-                next += 1
+            override fun onAnimationEnd(animation: Animator?) {
             }
-        } else start1 -= 10f
-    }
 
-    private fun initPath() {
+        })
 
-        circlePath = Path()
-        circlePath?.addArc(RectF(-300f, -300f, 300f, 300f), 0f, 360f)
 
     }
+
+    private fun initPath() {}
 
     private fun initPaint() {
 
@@ -86,17 +80,20 @@ class Ticker : View {
     private fun initAttributes(attributeSet: AttributeSet, defStyleAttr: Int) {
 
         val attrArray = context.obtainStyledAttributes(attributeSet, R.styleable.Ticker, defStyleAttr, 0)
-        textSize = attrArray.getFloat(R.styleable.Ticker_textSize,DEFAULT_TEXT_SIZE)
+        textSize = attrArray.getFloat(R.styleable.Ticker_textSize, DEFAULT_TEXT_SIZE)
         textColor = attrArray.getColor(R.styleable.Ticker_textColor, DEFAULT_TEXT_COLOR)
+        duration = attrArray.getInt(R.styleable.Ticker_duration, DEFAULT_ANIMATION_DURATION)
+        attrArray.recycle()
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-
+        canvas?.save()
         canvas?.translate(width / 2f, height / 2f)
-        canvas?.clipRect(-250f, -150f, 350f, 50f)
-        if (start1 == delta1) canvas?.drawText(next.toString().toCharArray(), 0, next.toString().length, -40f, start2, textPaint)
-        else canvas?.drawText(current.toString().toCharArray(), 0, current.toString().length, -40f, start1, textPaint)
+        Log.d("Position", start1.toString())
+        canvas?.drawText(numberArray[0].toString().toCharArray(), 0, numberArray[0].toString().length, 0f, start1, textPaint)
+        canvas?.restore()
+
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -104,33 +101,26 @@ class Ticker : View {
         when (event.action) {
 
             MotionEvent.ACTION_DOWN -> {
-                animationTimer = Timer()
-                animationTimer?.schedule(object : TimerTask() {
-
-                    override fun run() {
-                        tickView()
-                    }
-                },0, 10)
+                direction = !direction
+                positionAnimator.start()
             }
 
         }
         return true
     }
 
-    companion object {
+    //---------------------------------------------------------------------------------------------->
 
-        class AnimationHandler(instance : Ticker) : Handler() {
+    override fun onAnimationUpdate(animation: ValueAnimator) {
 
-            val weakReference = WeakReference<Ticker>(instance)
+        val deltacurrent = animation.animatedValue as Float
+        start1 = 200f - deltacurrent
+        if (!direction) start1 = deltacurrent * -1
 
-            override fun handleMessage(msg: Message?) {
-
-                val ticker = weakReference.get()
-                ticker?.invalidate()
-            }
-
-
-        }
+        invalidate()
 
     }
+
+    //---------------------------------------------------------------------------------------------->
+
 }
