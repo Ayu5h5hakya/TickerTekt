@@ -85,8 +85,9 @@ class Ticker : View {
 
     private fun initAttributes(attributeSet: AttributeSet, defStyleAttr: Int) {
 
-        textSize = attributeSet.getAttributeFloatValue(R.styleable.Ticker_textSize,DEFAULT_TEXT_SIZE)
-//        textColor = attributeSet.getAttribute
+        val attrArray = context.obtainStyledAttributes(attributeSet, R.styleable.Ticker, defStyleAttr, 0)
+        textSize = attrArray.getFloat(R.styleable.Ticker_textSize,DEFAULT_TEXT_SIZE)
+        textColor = attrArray.getColor(R.styleable.Ticker_textColor, DEFAULT_TEXT_COLOR)
     }
 
     override fun onDraw(canvas: Canvas?) {

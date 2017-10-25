@@ -7,7 +7,9 @@
     tools:context="com.example.ayush.tickertekt.MainActivity">
 
     <com.example.ayush.tickertekt.Ticker
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        app:textColor="@android:color/holo_green_dark"
+        android:layout_centerInParent="true"/>
 
 </RelativeLayout>
