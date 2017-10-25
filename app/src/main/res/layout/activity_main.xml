@@ -4,12 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/holo_green_light"
     tools:context="com.example.ayush.tickertekt.MainActivity">
 
     <com.example.ayush.tickertekt.Ticker
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:textColor="@android:color/holo_green_dark"
+        app:textColor="@android:color/white"
         app:duration = "1000"
         android:layout_centerInParent="true"/>
 

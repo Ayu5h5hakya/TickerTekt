@@ -6,13 +6,10 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Interpolator
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.LinearInterpolator
 
 
 /**
@@ -28,14 +25,17 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
 
     var textPaint: Paint? = null
 
-    private var direction: Boolean = false
-    private var start1: Float = 200f
+    private var start1: Float = 0f
+    //--------------TESTING-------------------------->
     private var numberArray = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
+    private var index = 0
+    //--------------TESTING-------------------------->
 
     var textSize = DEFAULT_TEXT_SIZE
     var textColor = DEFAULT_TEXT_COLOR
     var duration = DEFAULT_ANIMATION_DURATION
-    var animationRunning = true
+    var current = numberArray[0].toString()
+    var next = numberArray[1].toString()
 
     constructor(context: Context) : this(context, null) {
         initialize(null, 0)
@@ -90,8 +90,9 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         super.onDraw(canvas)
         canvas?.save()
         canvas?.translate(width / 2f, height / 2f)
-        Log.d("Position", start1.toString())
-        canvas?.drawText(numberArray[0].toString().toCharArray(), 0, numberArray[0].toString().length, 0f, start1, textPaint)
+        canvas?.clipRect(-250f, -150f, 350f, 50f)
+        canvas?.drawText(current.toCharArray(), 0, current.length, 0f, -start1, textPaint)
+        canvas?.drawText(next.toCharArray(), 0, next.length, 0f, 200f - start1, textPaint)
         canvas?.restore()
 
     }
@@ -101,7 +102,9 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         when (event.action) {
 
             MotionEvent.ACTION_DOWN -> {
-                direction = !direction
+                current = numberArray[index % 9].toString()
+                next = numberArray[(index + 1) % 9].toString()
+                index ++
                 positionAnimator.start()
             }
 
@@ -112,13 +115,8 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     //---------------------------------------------------------------------------------------------->
 
     override fun onAnimationUpdate(animation: ValueAnimator) {
-
-        val deltacurrent = animation.animatedValue as Float
-        start1 = 200f - deltacurrent
-        if (!direction) start1 = deltacurrent * -1
-
+        start1 = animation.animatedValue as Float
         invalidate()
-
     }
 
     //---------------------------------------------------------------------------------------------->
