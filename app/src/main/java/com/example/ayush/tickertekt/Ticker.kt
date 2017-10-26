@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -21,21 +22,23 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     private val DEFAULT_TEXT_COLOR = Color.argb(255, 0, 0, 0)
     private val DEFAULT_ANIMATION_DURATION = 1000
 
-    val positionAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 200f)
+    private lateinit var positionAnimator: ValueAnimator
+    private val gapFactor = 1f
 
-    var textPaint: Paint? = null
+    private var textPaint: Paint? = null
 
     private var start1: Float = 0f
     //--------------TESTING-------------------------->
-    private var numberArray = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
+    private var numberArray = intArrayOf(11, 222, 33, 54, 65, 677, 7, 8, 9)
     private var index = 0
     //--------------TESTING-------------------------->
 
-    var textSize = DEFAULT_TEXT_SIZE
-    var textColor = DEFAULT_TEXT_COLOR
-    var duration = DEFAULT_ANIMATION_DURATION
-    var current = numberArray[0].toString()
-    var next = numberArray[1].toString()
+    private var textSize = DEFAULT_TEXT_SIZE
+    private var textColor = DEFAULT_TEXT_COLOR
+    private var duration = DEFAULT_ANIMATION_DURATION
+    private var current = numberArray[0].toString()
+    private var next = numberArray[1].toString()
+    private var textHeight: Float = 0f
 
     constructor(context: Context) : this(context, null) {
         initialize(null, 0)
@@ -49,21 +52,37 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         initialize(attributeSet, defStyleAttr)
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val width = getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
+        val height = getDefaultSize(suggestedMinimumHeight, heightMeasureSpec)
+        setMeasuredDimension(width, height)
+
+        setupPositionAnimator(height)
+    }
+
+    private fun setupPositionAnimator(height: Int) {
+        positionAnimator = ValueAnimator.ofFloat(0f, height * gapFactor)
+        positionAnimator.duration = duration.toLong()
+        positionAnimator.addUpdateListener(this)
+    }
+
     private fun initialize(attributeSet: AttributeSet?, defStyleAttr: Int) {
 
         if (attributeSet != null) initAttributes(attributeSet, defStyleAttr)
         initPaint()
+        calculateTextCenter()
         initPath()
 
-        positionAnimator.duration = duration.toLong()
-        positionAnimator.addUpdateListener(this)
-        positionAnimator.addListener(object : AnimatorListenerAdapter() {
 
-            override fun onAnimationEnd(animation: Animator?) {
-            }
+    }
 
-        })
+    private fun calculateTextCenter() {
 
+        val textBounds = Rect()
+        textPaint?.getTextBounds("1", 0, 1, textBounds)
+        textHeight = textBounds.height() / 2f
 
     }
 
@@ -74,6 +93,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         textPaint = Paint()
         textPaint?.textSize = textSize
         textPaint?.color = textColor
+        textPaint?.textAlign = Paint.Align.CENTER
 
     }
 
@@ -86,13 +106,15 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         attrArray.recycle()
     }
 
+    private fun getCurrentY() = textHeight - start1
+    private fun getNextY() = textHeight + height * gapFactor - start1
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.save()
         canvas?.translate(width / 2f, height / 2f)
-        canvas?.clipRect(-250f, -150f, 350f, 50f)
-        canvas?.drawText(current.toCharArray(), 0, current.length, 0f, -start1, textPaint)
-        canvas?.drawText(next.toCharArray(), 0, next.length, 0f, 200f - start1, textPaint)
+        canvas?.drawText(current.toCharArray(), 0, current.length, 0f, getCurrentY(), textPaint)
+        canvas?.drawText(next.toCharArray(), 0, next.length, 0f, getNextY(), textPaint)
         canvas?.restore()
 
     }
@@ -104,7 +126,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
             MotionEvent.ACTION_DOWN -> {
                 current = numberArray[index % 9].toString()
                 next = numberArray[(index + 1) % 9].toString()
-                index ++
+                index++
                 positionAnimator.start()
             }
 
