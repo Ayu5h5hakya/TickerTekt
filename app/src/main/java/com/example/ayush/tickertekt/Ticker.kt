@@ -38,7 +38,8 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     private var duration = DEFAULT_ANIMATION_DURATION
     private var current = numberArray[0].toString()
     private var next = numberArray[1].toString()
-    private var textHeight: Float = 0f
+    private var textHeight: Int = 0
+    private var textWidth: Int = 0
 
     constructor(context: Context) : this(context, null) {
         initialize(null, 0)
@@ -55,8 +56,21 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        val width = getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
-        val height = getDefaultSize(suggestedMinimumHeight, heightMeasureSpec)
+        var width = getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
+        var height = getDefaultSize(suggestedMinimumHeight, heightMeasureSpec)
+
+        when (MeasureSpec.getMode(widthMeasureSpec)) {
+
+            MeasureSpec.EXACTLY -> { }
+            MeasureSpec.AT_MOST -> { width = Math.min(width, textWidth) }
+            MeasureSpec.UNSPECIFIED -> { width = textWidth }
+        }
+        when (MeasureSpec.getMode(heightMeasureSpec)) {
+
+            MeasureSpec.EXACTLY -> { }
+            MeasureSpec.AT_MOST -> { height = Math.min(height, textHeight) }
+            MeasureSpec.UNSPECIFIED -> { width = textWidth }
+        }
         setMeasuredDimension(width, height)
 
         setupPositionAnimator(height)
@@ -72,17 +86,18 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
 
         if (attributeSet != null) initAttributes(attributeSet, defStyleAttr)
         initPaint()
-        calculateTextCenter()
+        calculateTextCenter(current)
         initPath()
 
 
     }
 
-    private fun calculateTextCenter() {
+    private fun calculateTextCenter(text: String) {
 
         val textBounds = Rect()
-        textPaint?.getTextBounds("1", 0, 1, textBounds)
-        textHeight = textBounds.height() / 2f
+        textPaint?.getTextBounds(text, 0, 1, textBounds)
+        textHeight = textBounds.height()
+        textWidth = textBounds.width()
 
     }
 
@@ -106,8 +121,8 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         attrArray.recycle()
     }
 
-    private fun getCurrentY() = textHeight - start1
-    private fun getNextY() = textHeight + height * gapFactor - start1
+    private fun getCurrentY() = textHeight / 2f - start1
+    private fun getNextY() = textHeight / 2f + height * gapFactor - start1
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
