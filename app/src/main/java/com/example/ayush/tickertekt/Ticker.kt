@@ -29,7 +29,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
 
     private var start1: Float = 0f
     //--------------TESTING-------------------------->
-    private var numberArray = intArrayOf(11, 222, 33, 54, 65, 677, 7, 8, 9)
+    private var numberArray = intArrayOf(11, 222, 3, 545656, 655555, 677, 127, 18, 867867869)
     private var index = 0
     //--------------TESTING-------------------------->
 
@@ -73,7 +73,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         }
         setMeasuredDimension(width, height)
 
-        setupPositionAnimator(height)
+        //setupPositionAnimator(height)
     }
 
     private fun setupPositionAnimator(height: Int) {
@@ -95,7 +95,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     private fun calculateTextCenter(text: String) {
 
         val textBounds = Rect()
-        textPaint?.getTextBounds(text, 0, 1, textBounds)
+        textPaint?.getTextBounds(text, 0, text.length, textBounds)
         textHeight = textBounds.height()
         textWidth = textBounds.width()
 
@@ -139,9 +139,11 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
         when (event.action) {
 
             MotionEvent.ACTION_DOWN -> {
+                index++
                 current = numberArray[index % 9].toString()
                 next = numberArray[(index + 1) % 9].toString()
-                index++
+                calculateTextCenter(current)
+                requestLayout()
                 positionAnimator.start()
             }
 
