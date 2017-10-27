@@ -23,7 +23,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     private val DEFAULT_ANIMATION_DURATION = 1000
 
     private lateinit var positionAnimator: ValueAnimator
-    private val gapFactor = 1f
+    private val gapFactor = 1.3f
 
     private var textPaint: Paint? = null
 
@@ -103,8 +103,8 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
 
         val textBounds = Rect()
         textPaint?.getTextBounds(text, 0, text.length, textBounds)
-        textHeight = textBounds.height()
-        textWidth = textBounds.width()
+        textHeight = textBounds.height()+30
+        textWidth = textBounds.width()+30
 
     }
 
