@@ -29,7 +29,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
 
     private var start1: Float = 0f
     //--------------TESTING-------------------------->
-    private var numberArray = intArrayOf(11, 222, 33, 54, 65, 677, 7, 8, 9)
+    private var numberArray = intArrayOf(11, 222, 3333, 54543, 1165, 677, 7, 8, 999)
     private var index = 0
     //--------------TESTING-------------------------->
 
@@ -40,6 +40,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     private var next = numberArray[1].toString()
     private var textHeight: Int = 0
     private var textWidth: Int = 0
+    private var maxWidth :Int = 0
 
     constructor(context: Context) : this(context, null) {
         initialize(null, 0)
@@ -61,17 +62,23 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
 
         when (MeasureSpec.getMode(widthMeasureSpec)) {
 
-            MeasureSpec.EXACTLY -> { }
-            MeasureSpec.AT_MOST -> { width = Math.min(width, textWidth) }
-            MeasureSpec.UNSPECIFIED -> { width = textWidth }
+            MeasureSpec.EXACTLY -> { maxWidth = width}
+            MeasureSpec.AT_MOST -> {
+                width = Math.min(width, textWidth)
+                if (width > maxWidth) maxWidth = width
+            }
+            MeasureSpec.UNSPECIFIED -> {
+                width = textWidth
+                if (width > maxWidth) maxWidth = width
+            }
         }
         when (MeasureSpec.getMode(heightMeasureSpec)) {
 
             MeasureSpec.EXACTLY -> { }
             MeasureSpec.AT_MOST -> { height = Math.min(height, textHeight) }
-            MeasureSpec.UNSPECIFIED -> { width = textWidth }
+            MeasureSpec.UNSPECIFIED -> { height = textHeight }
         }
-        setMeasuredDimension(width, height)
+        setMeasuredDimension(maxWidth, height)
 
         setupPositionAnimator(height)
     }
@@ -95,7 +102,7 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
     private fun calculateTextCenter(text: String) {
 
         val textBounds = Rect()
-        textPaint?.getTextBounds(text, 0, 1, textBounds)
+        textPaint?.getTextBounds(text, 0, text.length, textBounds)
         textHeight = textBounds.height()
         textWidth = textBounds.width()
 
@@ -142,6 +149,8 @@ class Ticker : View, ValueAnimator.AnimatorUpdateListener {
                 current = numberArray[index % 9].toString()
                 next = numberArray[(index + 1) % 9].toString()
                 index++
+                calculateTextCenter(next)
+                requestLayout()
                 positionAnimator.start()
             }
 
